@@ -20,6 +20,9 @@ jobs:
     - name: Unit Test
       run: ./gradlew testDebugUnitTest
       continue-on-error: true # Allow steps to continue even with test failures
+    
+    - name: Danger
+      run: bundle exec danger
 
     - name: Report
       uses: asadmansr/android-test-report-action@master
