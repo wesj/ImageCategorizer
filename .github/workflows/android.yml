@@ -21,8 +21,13 @@ jobs:
       run: ./gradlew testDebugUnitTest
       continue-on-error: true # Allow steps to continue even with test failures
     
-    - name: Danger
-      run: bundle exec danger
+    - name: Danger action
+      uses: MeilCli/danger-action@v2
+      with:
+        plugins_file: Gemfile
+        danger_file: Dangerfile
+        # danger id, set identifier string
+        danger_id: 'danger-pr'
 
     - name: Report
       uses: asadmansr/android-test-report-action@master
