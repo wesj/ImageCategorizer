@@ -19,8 +19,15 @@ jobs:
 
     - name: Unit Test
       run: ./gradlew testDebugUnitTest
-      continue-on-error: true # Allow steps to continue even with test failures
-    
+
+  danger:
+    runs-on: ubuntu-latest
+      steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby 2.6
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.x
     - name: Danger action
       uses: MeilCli/danger-action@v2
       with:
@@ -28,6 +35,3 @@ jobs:
         danger_file: Dangerfile
         # danger id, set identifier string
         danger_id: 'danger-pr'
-
-    - name: Report
-      uses: asadmansr/android-test-report-action@master
