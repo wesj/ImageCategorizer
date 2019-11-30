@@ -1,18 +1,57 @@
 package com.example.myapplication
 
+import android.content.Context
 import android.graphics.Matrix
 import android.os.Build
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
+import android.view.View
 import android.view.ViewGroup
-import androidx.camera.core.CameraX
-import androidx.camera.core.Preview
-import androidx.camera.core.PreviewConfig
+import android.widget.ImageButton
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.camera.core.*
 import androidx.lifecycle.LifecycleOwner
+import java.io.File
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 
 class CameraManagement {
-    fun startCamera(liveCycleOwner: LifecycleOwner, textureView: TextureView) {
+    var executor: Executor
+    var imageCapture: ImageCapture? = null
+
+    // TODO: This is probably not the best default executor for this task. Just trying to get things up and running
+    @RequiresApi(Build.VERSION_CODES.N)
+    constructor(executor: Executor = Executors.newWorkStealingPool(4)) {
+        this.executor = executor
+    }
+
+    fun startCamera(liveCycleOwner: LifecycleOwner,
+                    textureView: TextureView) {
+        val analyzerConfig = ImageAnalysisConfig.Builder().apply {
+            // In our analysis, we care more about the latest image than
+            // analyzing *every* image
+            setImageReaderMode(
+                ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
+        }.build()
+
+        val analyzerUseCase = ImageAnalysis(analyzerConfig).apply {
+            setAnalyzer(executor, LuminosityAnalyzer())
+        }
+
+        val imageCaptureConfig = ImageCaptureConfig.Builder()
+            .apply {
+                // We don't set a resolution for image capture; instead, we
+                // select a capture mode which will infer the appropriate
+                // resolution based on aspect ratio and requested mode
+                setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
+            }.build()
+
+        imageCapture = ImageCapture(imageCaptureConfig)
+
         val previewConfig = PreviewConfig.Builder().apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 setTargetResolution(Size(640, 480))
@@ -31,7 +70,38 @@ class CameraManagement {
             updateTransform(textureView)
         }
 
-        CameraX.bindToLifecycle(liveCycleOwner, preview)
+        CameraX.bindToLifecycle(liveCycleOwner, preview, imageCapture, analyzerUseCase)
+    }
+
+    fun capturePicture(dir: File,
+                       viewFinder: View,
+                       context: Context
+    ) {
+        val file = File(dir,
+            "${System.currentTimeMillis()}.jpg")
+
+        imageCapture?.takePicture(file, executor,
+            object : ImageCapture.OnImageSavedListener {
+                override fun onError(
+                    imageCaptureError: ImageCapture.ImageCaptureError,
+                    message: String,
+                    exc: Throwable?
+                ) {
+                    val msg = "Photo capture failed: $message"
+                    Log.e("CameraXApp", msg, exc)
+                    viewFinder.post {
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onImageSaved(file: File) {
+                    val msg = "Photo capture succeeded: ${file.absolutePath}"
+                    Log.d("CameraXApp", msg)
+                    viewFinder.post {
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
     }
 
     fun updateTransform(textureView: TextureView) {
