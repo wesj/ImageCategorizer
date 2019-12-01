@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "925365650934",
+    "firebase_url": "https://toyproject-7589d.firebaseio.com",
+    "project_id": "toyproject-7589d",
+    "storage_bucket": "toyproject-7589d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925365650934:android:726055635051d5002333d7",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925365650934-rddn0i5grubtosujqs303dd9uuvdf2lo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.myapplication",
+            "certificate_hash": "4ee3a913a4bcdc452042409c48aa13b7d7f6dca5"
+          }
+        },
+        {
+          "client_id": "925365650934-qbcj8jdlnmb9105ljlfgut1en0k1bru5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjvvzh4DA7TAcnVTnmlqqIck3yhrMNBmQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925365650934-qbcj8jdlnmb9105ljlfgut1en0k1bru5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

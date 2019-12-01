@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.camera.core.*
 import androidx.lifecycle.LifecycleOwner
+import com.google.firebase.FirebaseApp
 import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -30,7 +31,8 @@ class CameraManagement {
     }
 
     fun startCamera(liveCycleOwner: LifecycleOwner,
-                    textureView: TextureView) {
+                    textureView: TextureView,
+                    context: Context) {
         val analyzerConfig = ImageAnalysisConfig.Builder().apply {
             // In our analysis, we care more about the latest image than
             // analyzing *every* image
@@ -38,8 +40,9 @@ class CameraManagement {
                 ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
         }.build()
 
+        FirebaseApp.initializeApp(context)
         val analyzerUseCase = ImageAnalysis(analyzerConfig).apply {
-            setAnalyzer(executor, LuminosityAnalyzer())
+            setAnalyzer(executor, FirebaseAnalyzer())
         }
 
         val imageCaptureConfig = ImageCaptureConfig.Builder()
