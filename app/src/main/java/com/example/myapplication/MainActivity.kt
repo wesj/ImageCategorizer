@@ -1,81 +1,80 @@
 package com.example.myapplication
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
 import android.view.TextureView
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.firebase.FirebaseApp
 
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBuilder.Callback {
     private lateinit var viewFinder: TextureView
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
     @RequiresApi(Build.VERSION_CODES.N)
     private var cameraManagement: CameraManagement? = null
+    private var permissionManager: PermissionManager? = null
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        cameraManagement = CameraManagement()
-
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        viewFinder = findViewById(R.id.view_finder)
-        if (allPermissionsGranted()) {
-            viewFinder.post { cameraManagement?.startCamera(this, viewFinder, baseContext) }
-        } else {
-            ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
+        FirebaseApp.initializeApp(baseContext)
+        initializeCamera()
+        initializeViews()
+    }
 
-        // Every time the provided texture view changes, recompute layout
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun initializeViews() {
+        viewFinder = findViewById(R.id.view_finder)
         viewFinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             cameraManagement?.updateTransform(viewFinder)
         }
 
         var capture = findViewById<ImageButton>(R.id.fab)
         capture.setOnClickListener {
-            cameraManagement?.capturePicture(externalMediaDirs.first(),
-                capture, baseContext)
+            cameraManagement?.capturePicture(externalMediaDirs.first())
         }
-
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun initializeCamera() {
+        cameraManagement = CameraManagement(this)
+        permissionManager = PermissionManager(REQUIRED_PERMISSIONS, this)
+        permissionManager?.requestPermissions(this)
+
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (requestCode == Companion.REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                viewFinder.post { cameraManagement?.startCamera(this, viewFinder, baseContext) }
-            } else {
-                Toast.makeText(this,
-                    "Don't have camera permission",
-                    Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
+        permissionManager?.onRequestPermissionsResult(baseContext, requestCode, permissions, grantResults)
     }
 
-    companion object {
-        private const val REQUEST_CODE_PERMISSIONS = 10
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onGranted() {
+        cameraManagement?.startCamera(this, viewFinder)
     }
+
+    override fun onRefused() {
+        Toast.makeText(baseContext, "You must grant camera permissions to use this app", Toast.LENGTH_LONG)
+        finish()
+    }
+
+    override fun didSaveImage(file: File) {
+        Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
+    }
+
+    override fun errorSavingImage(msg: String) {
+        Toast.makeText(baseContext, "Error saving image: " + msg, Toast.LENGTH_LONG)
+    }
+
 }
