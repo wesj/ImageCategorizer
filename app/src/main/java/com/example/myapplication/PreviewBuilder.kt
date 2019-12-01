@@ -38,16 +38,12 @@ class PreviewBuilder {
         val centerX = textureView.width / 2f
         val centerY = textureView.height / 2f
 
-        val rotationDegrees = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            when(textureView.display.rotation) {
-                Surface.ROTATION_0 -> 0
-                Surface.ROTATION_90 -> 90
-                Surface.ROTATION_180 -> 180
-                Surface.ROTATION_270 -> 270
-                else -> return
-            }
-        } else {
-            TODO("VERSION.SDK_INT < JELLY_BEAN_MR1")
+        val rotationDegrees = when(textureView.display.rotation) {
+            Surface.ROTATION_0 -> 0
+            Surface.ROTATION_90 -> 90
+            Surface.ROTATION_180 -> 180
+            Surface.ROTATION_270 -> 270
+            else -> return
         }
         matrix.postRotate(-rotationDegrees.toFloat(), centerX, centerY)
         textureView.setTransform(matrix)

@@ -10,20 +10,12 @@ import androidx.camera.core.UseCase
 import java.io.File
 import java.util.concurrent.Executor
 
-abstract class Callback : PermissionManager.Callback {
-    abstract fun didSaveImage(file: File)
-    abstract fun errorSavingImage(msg: String)
-    override fun onGranted() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+class CaptureBuilder(val callback: Callback) {
+    interface Callback {
+        fun didSaveImage(file: File)
+        fun errorSavingImage(msg: String)
     }
 
-    override fun onRefused() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
-class CaptureBuilder {
-    private var callback: Callback? = null
     private val captureUseCase: ImageCapture by lazy {
         ImageCapture(imageCaptureConfig)
     }
@@ -38,8 +30,7 @@ class CaptureBuilder {
     }
 
     fun capturePicture(dir: File,
-                       executor: Executor
-    ) {
+                       executor: Executor) {
         val file = File(dir, "${System.currentTimeMillis()}.jpg")
 
         captureUseCase.takePicture(file, executor,
@@ -49,12 +40,11 @@ class CaptureBuilder {
                     message: String,
                     exc: Throwable?
                 ) {
-                    callback?.errorSavingImage(message)
+                    callback.errorSavingImage(message)
                 }
 
                 override fun onImageSaved(file: File) {
-                    val msg = "Photo capture succeeded: ${file.absolutePath}"
-                    callback?.didSaveImage(file)
+                    callback.didSaveImage(file)
                 }
             })
     }

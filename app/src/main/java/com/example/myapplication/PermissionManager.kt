@@ -9,7 +9,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 
-class DefaultSystemApi: PermissionManager.SystemAPI {
+class DefaultPermissionManagerSystemApi: PermissionManager.SystemAPI {
     override fun checkSelfPermission(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
@@ -25,7 +25,7 @@ class DefaultSystemApi: PermissionManager.SystemAPI {
 class PermissionManager(
     private var requiredPermissions: Array<String>,
     private var callback: Callback,
-    private var systemApi: SystemAPI = DefaultSystemApi()
+    private var systemApi: SystemAPI = DefaultPermissionManagerSystemApi()
 ) {
     val requestCode = 49239
 

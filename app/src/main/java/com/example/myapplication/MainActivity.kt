@@ -8,15 +8,12 @@ import android.view.TextureView
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import com.example.myapplication.PermissionManager.*
-import com.example.myapplication.PermissionManager.Callback
 import com.google.firebase.FirebaseApp
 
 import kotlinx.android.synthetic.main.activity_main.*
-import java.security.Permission
-import com.example.myapplication.Callback as Callback1
+import java.io.File
 
-class MainActivity : AppCompatActivity(), PermissionManager.Callback {
+class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBuilder.Callback {
     private lateinit var viewFinder: TextureView
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
@@ -50,7 +47,7 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initializeCamera() {
-        cameraManagement = CameraManagement()
+        cameraManagement = CameraManagement(this)
         permissionManager = PermissionManager(REQUIRED_PERMISSIONS, this)
         permissionManager?.requestPermissions(this)
 
@@ -64,12 +61,20 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onGranted() {
-        cameraManagement?.startCamera(this, viewFinder, baseContext)
+        cameraManagement?.startCamera(this, viewFinder)
     }
 
     override fun onRefused() {
         Toast.makeText(baseContext, "You must grant camera permissions to use this app", Toast.LENGTH_LONG)
         finish()
+    }
+
+    override fun didSaveImage(file: File) {
+        Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
+    }
+
+    override fun errorSavingImage(msg: String) {
+        Toast.makeText(baseContext, "Error saving image: " + msg, Toast.LENGTH_LONG)
     }
 
 }

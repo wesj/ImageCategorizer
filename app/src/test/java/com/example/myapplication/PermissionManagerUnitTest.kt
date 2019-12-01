@@ -2,18 +2,17 @@ package com.example.myapplication
 
 import android.app.Activity
 import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(JUnit4::class)
 class PermissionManagerUnitTest() {
     @Test
     fun testRequestPermissionsWhenAlreadyGranted() {
         val systemApi = mockk<PermissionManager.SystemAPI>()
-        val callback = spyk<PermissionManager.Callback>()
+        val callback = mockk<PermissionManager.Callback>()
         val activity = mockk<Activity>()
         val requestedPermissions = arrayOf("Foo", "Bar")
         val manager = PermissionManager(requestedPermissions,
@@ -35,7 +34,7 @@ class PermissionManagerUnitTest() {
     @Test
     fun testRequestPermissionsWhenNotYetGranted() {
         val systemApi = mockk<PermissionManager.SystemAPI>()
-        val callback = spyk<PermissionManager.Callback>()
+        val callback = mockk<PermissionManager.Callback>()
         val activity = mockk<Activity>()
         val requestedPermissions = arrayOf("Foo", "Bar")
         val manager = PermissionManager(requestedPermissions,
@@ -55,7 +54,7 @@ class PermissionManagerUnitTest() {
     @Test
     fun testPermissionsResultWhenAllGranted() {
         val systemApi = mockk<PermissionManager.SystemAPI>()
-        val callback = spyk<PermissionManager.Callback>()
+        val callback = mockk<PermissionManager.Callback>()
         val activity = mockk<Activity>()
         val requestedPermissions = arrayOf("Foo", "Bar")
         val manager = PermissionManager(requestedPermissions,
@@ -77,7 +76,7 @@ class PermissionManagerUnitTest() {
     @Test
     fun testPermissionsResultWhenSomeGranted() {
         val systemApi = mockk<PermissionManager.SystemAPI>()
-        val callback = spyk<PermissionManager.Callback>()
+        val callback = mockk<PermissionManager.Callback>()
         val activity = mockk<Activity>()
         val manager = PermissionManager(arrayOf("Foo", "Bar"),
             callback,
@@ -98,7 +97,7 @@ class PermissionManagerUnitTest() {
     @Test
     fun testPermissionsResultWithWrongRequestCode() {
         val systemApi = mockk<PermissionManager.SystemAPI>()
-        val callback = spyk<PermissionManager.Callback>()
+        val callback = mockk<PermissionManager.Callback>()
         val activity = mockk<Activity>()
         val manager = PermissionManager(arrayOf("Foo", "Bar"),
             callback,

@@ -20,25 +20,37 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 
-class CameraManagement {
-    private val captureManager = CaptureBuilder()
-    private val previewManager = PreviewBuilder()
-    private var executor: Executor
+private class DefaultCameraManagementSystemApi: CameraManagement.SystemApi {
+    override fun bindToLifecycle(liveCycleOwner: LifecycleOwner,
+                                 preview: UseCase,
+                                 capture: UseCase,
+                                 analyzer: UseCase) {
+        CameraX.bindToLifecycle(liveCycleOwner, preview, capture, analyzer)
+    }
+}
 
-    // TODO: This is probably not the best default executor for this task. Just trying to get things up and running
-    @RequiresApi(Build.VERSION_CODES.N)
-    constructor(executor: Executor = Executors.newWorkStealingPool(4)) {
-        this.executor = executor
+// TODO: This is probably not the best default executor for this task. Just trying to get things up and running
+@RequiresApi(Build.VERSION_CODES.N)
+class CameraManagement(cameraCallback: CaptureBuilder.Callback,
+                       private val captureManager: CaptureBuilder = CaptureBuilder(cameraCallback),
+                       private val previewManager: PreviewBuilder = PreviewBuilder(),
+                       private val analyzerManager: AnalyzerBuilder = AnalyzerBuilder(),
+                       private val executor: Executor = Executors.newWorkStealingPool(4),
+                       private val systemApi: SystemApi = DefaultCameraManagementSystemApi()) {
+
+    interface SystemApi {
+        fun bindToLifecycle(liveCycleOwner: LifecycleOwner,
+                            preview: UseCase,
+                            capture: UseCase,
+                            analyzer: UseCase)
     }
 
     fun startCamera(liveCycleOwner: LifecycleOwner,
-                    textureView: TextureView,
-                    context: Context) {
-        val analyzerUseCase = AnalyzerBuilder().buildUseCase(executor)
+                    textureView: TextureView) {
+        val analyzerUseCase = analyzerManager.buildUseCase(executor)
         val captureUseCase = captureManager.buildUseCase()
         val previewUseCase = previewManager.buildUseCase(textureView)
-
-        CameraX.bindToLifecycle(liveCycleOwner, previewUseCase, captureUseCase, analyzerUseCase)
+        systemApi.bindToLifecycle(liveCycleOwner, previewUseCase, captureUseCase, analyzerUseCase)
     }
 
     fun capturePicture(dir: File) {
