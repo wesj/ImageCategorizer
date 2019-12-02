@@ -2,17 +2,18 @@ package com.example.myapplication
 
 import android.graphics.Matrix
 import android.os.Build
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.ViewGroup
-import androidx.camera.core.Preview
-import androidx.camera.core.PreviewConfig
-import androidx.camera.core.UseCase
+import androidx.camera.core.*
 
 class PreviewBuilder {
+
     fun buildUseCase(textureView: TextureView): UseCase {
-        val previewConfig = PreviewConfig.Builder().apply {
+        val previewConfig = PreviewConfig.Builder()
+            .apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 setTargetResolution(Size(640, 480))
             }

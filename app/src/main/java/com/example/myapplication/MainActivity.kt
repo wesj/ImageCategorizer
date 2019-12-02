@@ -6,24 +6,30 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.TextureView
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
-
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+import java.util.concurrent.Executors
 
-class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBuilder.Callback {
+
+class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBuilder.Callback,
+    AnalyzerBuilder.Callback {
     private lateinit var viewFinder: TextureView
+    private var executor = Executors.newSingleThreadExecutor()
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
     @RequiresApi(Build.VERSION_CODES.N)
     private var cameraManagement: CameraManagement? = null
     private var permissionManager: PermissionManager? = null
+    private val captureManager: CaptureBuilder = CaptureBuilder(this)
+    private val previewManager: PreviewBuilder = PreviewBuilder()
+    private val analyzerManager: AnalyzerBuilder = AnalyzerBuilder(this)
     private var toastManager: ToastManager? = null
     private var sharingManager: SharingManager? = null
 
@@ -34,8 +40,8 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
         setSupportActionBar(toolbar)
 
         FirebaseApp.initializeApp(baseContext)
-        initializeCamera()
         initializeViews()
+        initializeCamera()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -47,13 +53,16 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
 
         var capture = findViewById<ImageButton>(R.id.fab)
         capture.setOnClickListener {
-            cameraManagement?.capturePicture(externalMediaDirs.first())
+            captureManager.capturePicture(externalMediaDirs.first(), executor)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initializeCamera() {
-        cameraManagement = CameraManagement(this)
+        cameraManagement = CameraManagement(captureManager,
+                                            previewManager,
+                                            analyzerManager,
+                                            executor)
         permissionManager = PermissionManager(REQUIRED_PERMISSIONS, this)
         permissionManager?.requestPermissions(this)
 
@@ -71,8 +80,10 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     }
 
     override fun onRefused() {
-        toastManager?.showToast(baseContext, "You must grant camera permissions to use this app")
-        finish()
+        toolbar.post {
+          toastManager?.showToast(baseContext, "You must grant camera permissions to use this app")
+          finish()
+        }
     }
 
     override fun didSaveImage(file: File) {
@@ -83,7 +94,21 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     }
 
     override fun errorSavingImage(msg: String) {
-        toastManager?.showToast(baseContext, "Error saving image: " + msg)
+        toolbar.post {
+            Toast.makeText(baseContext, resources.getString(R.string.error_saving_image, msg), Toast.LENGTH_LONG)
+        }
+    }
+
+    override fun onItemFound(item: AnalyzerBuilder.Type) {
+        if (item == AnalyzerBuilder.Type.Unknown) {
+            toolbar.setTitle(R.string.unknown_item)
+        } else {
+            toolbar.title = resources.getString(R.string.found_item, item.name)
+        }
+    }
+
+    override fun nothingFound() {
+        toolbar.setTitle(R.string.nothing_found)
     }
 
 }

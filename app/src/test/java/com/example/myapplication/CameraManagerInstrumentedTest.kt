@@ -22,7 +22,7 @@ class CameraManagerInstrumentedTest() {
         val previewBuilder = mockk<PreviewBuilder>()
         val analyzerManager = mockk<AnalyzerBuilder>()
         val executor = mockk<Executor>()
-        val manager = CameraManagement(captureCallback,
+        val manager = CameraManagement(
             captureBuilder,
             previewBuilder,
             analyzerManager,
@@ -45,6 +45,30 @@ class CameraManagerInstrumentedTest() {
             analyzerManager.buildUseCase(executor)
             captureBuilder.buildUseCase()
             systemApi.bindToLifecycle(liveCycleOwner, useCase, useCase, useCase)
+        }
+    }
+
+    @Test
+    fun testUpdateTransform() {
+        val systemApi = mockk<CameraManagement.SystemApi>()
+        val captureBuilder = mockk<CaptureBuilder>()
+        val previewBuilder = mockk<PreviewBuilder>()
+        val analyzerManager = mockk<AnalyzerBuilder>()
+        val executor = mockk<Executor>()
+        val manager = CameraManagement(captureBuilder,
+            previewBuilder,
+            analyzerManager,
+            executor,
+            systemApi)
+
+        val textureView = mockk<TextureView>()
+
+        every { previewBuilder.updateTransform(textureView) } returns Unit
+
+        manager.updateTransform(textureView)
+
+        verify {
+            previewBuilder.updateTransform(textureView)
         }
     }
 }
