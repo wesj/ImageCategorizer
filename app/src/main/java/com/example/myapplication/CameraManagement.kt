@@ -41,8 +41,7 @@ class CameraManagement(private val captureManager: CaptureBuilder,
         systemApi.bindToLifecycle(liveCycleOwner, previewUseCase, captureUseCase, analyzerUseCase)
     }
 
-    fun updateTransform(liveCycleOwner: LifecycleOwner,
-                        viewFinder: TextureView) {
+    fun updateTransform(viewFinder: TextureView) {
         previewManager.updateTransform(viewFinder)
     }
 }

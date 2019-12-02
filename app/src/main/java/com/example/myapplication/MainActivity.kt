@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     private fun initializeViews() {
         viewFinder = findViewById(R.id.view_finder)
         viewFinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            cameraManagement?.updateTransform(this, viewFinder)
+            cameraManagement?.updateTransform(viewFinder)
         }
 
         var capture = findViewById<ImageButton>(R.id.fab)
