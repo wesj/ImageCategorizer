@@ -12,8 +12,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Android build action
-      uses: xdtianyu/actions-android-ci@v1.0.0
+    - name: Build Android
+      run: ./gradlew build
+      shell: bash
     - name: Sign Android release
       uses: r0adkll/sign-android-release@v1
       with:
