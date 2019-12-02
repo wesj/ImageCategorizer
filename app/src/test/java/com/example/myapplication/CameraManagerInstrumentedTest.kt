@@ -22,7 +22,7 @@ class CameraManagerInstrumentedTest() {
         val previewBuilder = mockk<PreviewBuilder>()
         val analyzerManager = mockk<AnalyzerBuilder>()
         val executor = mockk<Executor>()
-        val manager = CameraManagement(captureCallback,
+        val manager = CameraManagement(
             captureBuilder,
             previewBuilder,
             analyzerManager,

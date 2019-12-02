@@ -1,9 +1,5 @@
 package com.example.myapplication
 
-import android.content.Context
-import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureConfig
 import androidx.camera.core.UseCase

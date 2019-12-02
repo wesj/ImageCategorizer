@@ -7,18 +7,19 @@ import androidx.camera.core.ImageProxy
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
+import com.google.firebase.ml.vision.objects.FirebaseVisionObject
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions.Builder
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions.STREAM_MODE
 
 
-class FirebaseAnalyzer : ImageAnalysis.Analyzer {
+class FirebaseAnalyzer(private val callback: AnalyzerBuilder.Callback) : ImageAnalysis.Analyzer {
     val options = Builder()
         .setDetectorMode(STREAM_MODE)
         .enableClassification()  // Optional
         .build()
     val objectDetector = FirebaseVision.getInstance().getOnDeviceObjectDetector(options)
+    // TODO: Need to be more careful with concurrency here
     var processing = false
-
 
     private fun degreesToFirebaseRotation(degrees: Int): Int {
         return when (degrees) {
@@ -34,7 +35,7 @@ class FirebaseAnalyzer : ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: ImageProxy?, degrees: Int) {
         if (processing) {
-            Log.d("TOY", "Ignoring frame")
+            // Log.d("TOY", "Busy")
             return
         }
 
@@ -44,20 +45,26 @@ class FirebaseAnalyzer : ImageAnalysis.Analyzer {
 
         val mediaImage: Image? = imageProxy.image
         if (mediaImage != null) {
+            processing = true
             val rotation = degreesToFirebaseRotation(degrees)
             val image = FirebaseVisionImage.fromMediaImage(mediaImage!!, rotation)
             objectDetector.processImage(image)
                 .addOnSuccessListener { detectedObjects ->
+                    if (detectedObjects.size == 0) {
+                        callback.nothingFound()
+                    }
+
                     for (obj in detectedObjects) {
-                        val id = obj.trackingId
-                        val bounds = obj.boundingBox
                         val category = obj.classificationCategory
-                        val confidence = obj.classificationConfidence
-                        Log.d("TOY", "Category: " + category)
+                        // Log.d("TOY", "Found "  + category)
+
+                        val type = AnalyzerBuilder.Type.from(category)
+                        callback.onItemFound(type)
                     }
                     processing = false
                 }
                 .addOnFailureListener { e ->
+                    // Log.d("TOY", "Error " + e)
                     processing = false
                 }
         }
