@@ -1,6 +1,9 @@
 package com.example.myapplication
 
 import android.Manifest
+import android.app.NotificationManager
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +11,7 @@ import android.view.TextureView
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -20,6 +24,8 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     @RequiresApi(Build.VERSION_CODES.N)
     private var cameraManagement: CameraManagement? = null
     private var permissionManager: PermissionManager? = null
+    private var toastManager: ToastManager? = null
+    private var sharingManager: SharingManager? = null
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,28 +71,19 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     }
 
     override fun onRefused() {
-        Toast.makeText(baseContext, "You must grant camera permissions to use this app", Toast.LENGTH_LONG)
+        toastManager?.showToast(baseContext, "You must grant camera permissions to use this app")
         finish()
     }
 
     override fun didSaveImage(file: File) {
         toolbar.post {
-            Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
-            val sharingIntent = Intent(Intent.ACTION_SEND)
-            sharingIntent.type = "image/jpeg"
-
-            val photoURI: Uri = FileProvider.getUriForFile(
-                this,
-                BuildConfig.APPLICATION_ID + ".provider",
-                file
-            )
-            sharingIntent.putExtra(Intent.EXTRA_STREAM, photoURI)
-            startActivity(Intent.createChooser(sharingIntent, "Share!"))
+            toastManager?.showToast(baseContext, "Image saved " + file.absolutePath)
+            sharingManager?.shareImage(file, this)
         }
     }
 
     override fun errorSavingImage(msg: String) {
-        Toast.makeText(baseContext, "Error saving image: " + msg, Toast.LENGTH_LONG)
+        toastManager?.showToast(baseContext, "Error saving image: " + msg)
     }
 
 }
