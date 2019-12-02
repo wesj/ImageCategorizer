@@ -70,7 +70,19 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     }
 
     override fun didSaveImage(file: File) {
-        Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
+        toolbar.post {
+            Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
+            val sharingIntent = Intent(Intent.ACTION_SEND)
+            sharingIntent.type = "image/jpeg"
+
+            val photoURI: Uri = FileProvider.getUriForFile(
+                this,
+                BuildConfig.APPLICATION_ID + ".provider",
+                file
+            )
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, photoURI)
+            startActivity(Intent.createChooser(sharingIntent, "Share!"))
+        }
     }
 
     override fun errorSavingImage(msg: String) {
