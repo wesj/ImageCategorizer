@@ -1,8 +1,6 @@
 package com.example.myapplication
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.TextureView
@@ -10,7 +8,6 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -77,30 +74,42 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     }
 
     override fun onRefused() {
-        Toast.makeText(baseContext, "You must grant camera permissions to use this app", Toast.LENGTH_LONG)
-        finish()
+        toolbar.post {
+            Toast.makeText(
+                baseContext,
+                resources.getString(R.string.you_must_grant_permissions),
+                Toast.LENGTH_LONG
+            )
+            finish()
+        }
     }
 
     override fun didSaveImage(file: File) {
-        Toast.makeText(baseContext, "Image saved " + file.absolutePath, Toast.LENGTH_SHORT)
+        toolbar.post {
+            Toast.makeText(
+                baseContext,
+                resources.getString(R.string.image_saved, file.absolutePath),
+                Toast.LENGTH_SHORT
+            )
+        }
     }
 
     override fun errorSavingImage(msg: String) {
         toolbar.post {
-            Toast.makeText(baseContext, "Error saving image: " + msg, Toast.LENGTH_LONG)
+            Toast.makeText(baseContext, resources.getString(R.string.error_saving_image, msg), Toast.LENGTH_LONG)
         }
     }
 
     override fun onItemFound(item: AnalyzerBuilder.Type) {
         if (item == AnalyzerBuilder.Type.Unknown) {
-            toolbar.title = "No idea what this is"
+            toolbar.setTitle(R.string.unknown_item)
         } else {
-            toolbar.title = "Found! You've got a " + item.name
+            toolbar.title = resources.getString(R.string.found_item, item.name)
         }
     }
 
     override fun nothingFound() {
-        toolbar.title = "Not seeing much"
+        toolbar.setTitle(R.string.nothing_found)
     }
 
 }
