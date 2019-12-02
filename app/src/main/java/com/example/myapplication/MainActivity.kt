@@ -1,6 +1,9 @@
 package com.example.myapplication
 
 import android.Manifest
+import android.app.NotificationManager
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.TextureView
@@ -8,6 +11,7 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -26,6 +30,8 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
     private val captureManager: CaptureBuilder = CaptureBuilder(this)
     private val previewManager: PreviewBuilder = PreviewBuilder()
     private val analyzerManager: AnalyzerBuilder = AnalyzerBuilder(this)
+    private var toastManager: ToastManager? = null
+    private var sharingManager: SharingManager? = null
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,22 +81,15 @@ class MainActivity : AppCompatActivity(), PermissionManager.Callback, CaptureBui
 
     override fun onRefused() {
         toolbar.post {
-            Toast.makeText(
-                baseContext,
-                resources.getString(R.string.you_must_grant_permissions),
-                Toast.LENGTH_LONG
-            )
-            finish()
+          toastManager?.showToast(baseContext, "You must grant camera permissions to use this app")
+          finish()
         }
     }
 
     override fun didSaveImage(file: File) {
         toolbar.post {
-            Toast.makeText(
-                baseContext,
-                resources.getString(R.string.image_saved, file.absolutePath),
-                Toast.LENGTH_SHORT
-            )
+            toastManager?.showToast(baseContext, "Image saved " + file.absolutePath)
+            sharingManager?.shareImage(file, this)
         }
     }
 

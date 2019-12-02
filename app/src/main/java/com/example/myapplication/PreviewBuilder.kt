@@ -35,6 +35,10 @@ class PreviewBuilder {
     }
 
     fun updateTransform(textureView: TextureView) {
+        if (textureView.display == null) {
+            return
+        }
+
         val matrix = Matrix()
         val centerX = textureView.width / 2f
         val centerY = textureView.height / 2f
